@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const Stripe = require("stripe");
 const dotenv = require("dotenv");
+const helmet = require("helmet");
 
 dotenv.config();
 
@@ -19,7 +20,10 @@ try {
 // 2. Create Express app
 const app = express();
 
-// 3. Enhanced CORS configuration
+// 3. Add security headers with Helmet
+app.use(helmet());
+
+// 4. Enhanced CORS configuration
 const corsOptions = {
   origin:
     process.env.NODE_ENV === "production"
@@ -33,18 +37,23 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "10kb" }));
 
-// 4. Request logger middleware
+// 5. Request logger middleware
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
 
-// 5. Health check
+// 6. Health check
 app.get("/health", (req, res) => {
-  res.status(200).json({ status: "healthy" });
+  res
+    .status(200)
+    .json({
+      status: "healthy",
+      version: process.env.npm_package_version || "1.0.0",
+    });
 });
 
-// 6. Payment route
+// 7. Payment route
 app.post("/payment/create", async (req, res) => {
   if (!req.is("application/json")) {
     return res.status(415).json({ error: "Unsupported Media Type" });
@@ -75,7 +84,12 @@ app.post("/payment/create", async (req, res) => {
       id: paymentIntent.id,
     });
   } catch (err) {
-    console.error("Stripe Error:", err);
+    console.error("Stripe Error:", {
+      message: err.message,
+      code: err.code,
+      type: err.type,
+      stack: err.stack,
+    });
 
     const statusCode = err.type === "StripeInvalidRequestError" ? 400 : 500;
     return res.status(statusCode).json({
@@ -86,19 +100,24 @@ app.post("/payment/create", async (req, res) => {
   }
 });
 
-// 7. Error handler
+// 8. Error handler
 app.use((err, req, res, next) => {
-  console.error("Server Error:", err);
+  console.error("Server Error:", {
+    message: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+  });
   res.status(500).json({ error: "Internal Server Error" });
 });
 
-// 8. Start server
+// 9. Start server
 const PORT = parseInt(process.env.PORT || "3000", 10);
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
 
-// 9. Graceful shutdown
+// 10. Graceful shutdown
 process.on("SIGTERM", () => {
   console.log("SIGTERM received. Shutting down gracefully...");
   server.close(() => {
