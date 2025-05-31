@@ -1,20 +1,27 @@
 {
   "name": "amazon_api",
   "version": "1.0.0",
+  "description": "Amazon-style API backend with Express, Stripe, and Firestore",
   "main": "index.js",
-  
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-   
+    "start": "node index.js",             
+    "dev": "nodemon index.js",            
+    "format": "prettier --write .",       
+    "test": "echo \"No test specified\" && exit 0"
   },
   "author": "",
   "license": "ISC",
-  "description": "",
-  "type":"module",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "firebase": "^9.6.1",
     "stripe": "^18.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    
+    "prettier": "^3.2.5"
   }
 }
