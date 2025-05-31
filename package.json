@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Amazon-style API backend with Express, Stripe, and Firestore",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
