@@ -25,10 +25,7 @@ app.use(helmet());
 
 // 4. Enhanced CORS configuration
 const corsOptions = {
-  origin:
-    process.env.NODE_ENV === "production"
-      ? process.env.ALLOWED_ORIGINS.split(",")
-      : true,
+  origin: true,
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
@@ -45,12 +42,10 @@ app.use((req, res, next) => {
 
 // 6. Health check
 app.get("/health", (req, res) => {
-  res
-    .status(200)
-    .json({
-      status: "healthy",
-      version: process.env.npm_package_version || "1.0.0",
-    });
+  res.status(200).json({
+    status: "healthy",
+    version: process.env.npm_package_version || "1.0.0",
+  });
 });
 
 // 7. Payment route
