@@ -1,12 +1,11 @@
-import express from "express";
-import cors from "cors";
-import Stripe from "stripe";
-import dotenv from "dotenv";
+const express = require("express");
+const cors = require("cors");
+const Stripe = require("stripe");
+const dotenv = require("dotenv");
 
-// 1. Load environment variables
 dotenv.config();
 
-// 2. Initialize Stripe with proper error handling
+// 1. Initialize Stripe with error handling
 let stripe;
 try {
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -17,10 +16,10 @@ try {
   process.exit(1);
 }
 
-// 3. Create Express app with enhanced configuration
+// 2. Create Express app
 const app = express();
 
-// Enhanced CORS configuration
+// 3. Enhanced CORS configuration
 const corsOptions = {
   origin:
     process.env.NODE_ENV === "production"
@@ -34,27 +33,25 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "10kb" }));
 
-// Add request logging middleware
+// 4. Request logger middleware
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path}`);
   next();
 });
 
-// 4. Health check endpoint
+// 5. Health check
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "healthy" });
 });
 
-// 5. Payment endpoint with enhanced validation
+// 6. Payment route
 app.post("/payment/create", async (req, res) => {
-  // Validate request content type
   if (!req.is("application/json")) {
     return res.status(415).json({ error: "Unsupported Media Type" });
   }
 
   const { amount, currency = "usd" } = req.body;
 
-  // Enhanced validation
   if (typeof amount !== "number" || amount < 50) {
     return res.status(400).json({
       error: "Amount must be a number of at least 50 cents",
@@ -67,7 +64,7 @@ app.post("/payment/create", async (req, res) => {
       currency,
       metadata: {
         integration_check: "accept_a_payment",
-        app_version: process.env.npm_package_version,
+        app_version: process.env.npm_package_version || "1.0.0",
       },
     });
 
@@ -89,19 +86,19 @@ app.post("/payment/create", async (req, res) => {
   }
 });
 
-// 6. Error handling middleware
+// 7. Error handler
 app.use((err, req, res, next) => {
   console.error("Server Error:", err);
   res.status(500).json({ error: "Internal Server Error" });
 });
 
-// 7. Start server with proper shutdown handling
+// 8. Start server
 const PORT = parseInt(process.env.PORT || "3000", 10);
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
 
-// Graceful shutdown
+// 9. Graceful shutdown
 process.on("SIGTERM", () => {
   console.log("SIGTERM received. Shutting down gracefully...");
   server.close(() => {
